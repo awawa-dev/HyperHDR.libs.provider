@@ -1,0 +1,76 @@
+# Copyright (c) 2023 Awawa-dev
+
+name: Build libs for HyperHDR
+
+on: [push]
+    
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    env:
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Prepare env.
+      - name: Set up x64 build architecture environment
+        shell: cmd
+        run: |
+          call "${{ env.VCINSTALLDIR }}\Auxiliary\Build\vcvars64.bat"
+
+      # Install vcpkg
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgGitCommitId: 5b1214315250939257ef5d62ecdcbca18cf4fb1c
+
+      # Build packages
+      - name: Build packages        
+        shell: powershell
+        run: |
+          vcpkg/vcpkg install
+          Compress-Archive "${{ github.workspace }}\vcpkg\packages\lib*" libs4windows.zip
+
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libs4windows
+          path: |
+            libs4windows.zip
+  
+################################
+###### Publish Releases ########
+################################
+
+  publish:
+    name: Publish Releases
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Download artifacts from previous build process
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      # create draft release and upload artifacts
+      - name: Create draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Libs for HyperHDR (tag: ${{  github.ref_name }})"
+          tag_name: ${{  github.ref_name }}
+          files: "artifacts/**"
+          draft: true

@@ -1,1 +1,1 @@
-# libFTDI
+Provides Windows versions of the libraries needed for some HyperHDR features
