@@ -23,11 +23,11 @@ jobs:
 
       # Install vcpkg
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.1
         with:
           runVcpkgInstall: true
           vcpkgJsonGlob: '**/vcpkg.json'
-          vcpkgGitCommitId: 5b1214315250939257ef5d62ecdcbca18cf4fb1c
+          vcpkgGitCommitId: 9d47b24eacbd1cd94f139457ef6cd35e5d92cc84
 
       # Build packages
       - name: Build packages        
